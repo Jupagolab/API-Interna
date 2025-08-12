@@ -78,15 +78,17 @@ export const getCardsBoard = async (req, res) => {
 
 export const addNewCard = async (req, res) => {
   try {
-    const { id } = req.params;
-    trelloClient.params["idList"] = TRELLO_ID_LIST_ASIGNAR;
+    trelloClient.defaults.params["idList"] = TRELLO_ID_LIST_ASIGNAR;
     const { name, desc, labels, members } = req.body;
 
-    trelloClient.params["name"] = name;
-    trelloClient.params["desc"] = desc;
-    trelloClient.params["labels"] = labels;
-    trelloClient.params["members"] = members;
-    
+    console.log(req.body)
+
+    trelloClient.defaults.params["name"] = name;
+    trelloClient.defaults.params["desc"] = desc;
+    trelloClient.defaults.params["idLabels"] = labels.toString();
+    trelloClient.defaults.params["idMembers"] = members.toString();
+    trelloClient.defaults.params["start"] = Date.now();
+
     const response = await trelloClient.post(`/cards`);
     res.status(200).json(response.data);
   } catch (error) {

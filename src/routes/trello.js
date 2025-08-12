@@ -11,7 +11,7 @@ router.get("/boards/:id/labels", getLabelsBoard)
 router.get("/boards/:id/customFields", getCustomFieldsBoard)
 // OBTENER CAMPOS PERSONALIZADOS
 router.get("/boards/:id/cards", getCardsBoard)
-// OBTENER CUSTOM FIELDS
+// AGREGAR UNA NUEVA CARD
 router.post("/cards", addNewCard)
 // ACTUALIZAR CARDS
 router.put("/cards/:id/customFields", updateCard)
