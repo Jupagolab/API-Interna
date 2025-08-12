@@ -58,6 +58,24 @@ export const getCustomFieldsBoard = async (req, res) => {
   }
 }
 
+export const getCardsBoard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await trelloClient.get(`/boards/${id}/cards`);
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error en consulta: ', error.message)
+    if (error.response) {
+      // Propagamos el código de error de Trello
+      res.status(error.response.status).json({
+        error: error.response.data || 'Error from Trello API'
+      });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+}
+
 export const addNewCard = async (req, res) => {
   try {
     const { id } = req.params;
