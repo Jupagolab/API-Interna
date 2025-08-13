@@ -81,8 +81,6 @@ export const addNewCard = async (req, res) => {
     trelloClient.defaults.params["idList"] = TRELLO_ID_LIST_ASIGNAR;
     const { name, desc, labels, members } = req.body;
 
-    console.log(req.body)
-
     trelloClient.defaults.params["name"] = name;
     trelloClient.defaults.params["desc"] = desc;
     trelloClient.defaults.params["idLabels"] = labels.toString();

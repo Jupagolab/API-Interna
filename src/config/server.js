@@ -14,7 +14,11 @@ app.use(express.json());
 app.set("port", PORT || 4000);
 
 // Rutas
+// TRELLO
 import routeTrello from '../routes/trello.js';
 app.use("/api/trello", routeTrello)
+// VENTAS
+import routeVentas from '../routes/ventas.js';
+app.use("/api/ventas", routeVentas)
 
 export default app;
