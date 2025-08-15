@@ -20,5 +20,8 @@ app.use("/api/trello", routeTrello)
 // VENTAS
 import routeVentas from '../routes/ventas.js';
 app.use("/api/ventas", routeVentas)
+// SORTEO
+import routeSorteo from '../routes/sorteo.js';
+app.use("/api/sorteo", routeSorteo)
 
 export default app;
