@@ -10,7 +10,7 @@ const SorteoEsquema = new Schema({
     required: true,
     unique: true,
   },
-});
+}, { timestamps: true });
 
 const Sorteo = model("sorteo", SorteoEsquema);
 
