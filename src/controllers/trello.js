@@ -1,5 +1,6 @@
 import trelloClient from "../utils/trelloClient.js";
 import { configDotenv } from "dotenv";
+import Ventas from '../models/ventas.js';
 configDotenv();
 
 const { TRELLO_ID_LIST_ASIGNAR } = process.env;
@@ -8,6 +9,24 @@ export const getMembersBoard = async (req, res) => {
   try {
     const { id } = req.params;
     const response = await trelloClient.get(`/boards/${id}/members`);
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error en consulta: ', error.message)
+    if (error.response) {
+      // Propagamos el código de error de Trello
+      res.status(error.response.status).json({
+        error: error.response.data || 'Error from Trello API'
+      });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+}
+
+export const getCardsName = async (req, res) => {
+  try {
+    const { nombre, apellido } = req.body;
+    const response = await Ventas.find({"nombre_completo": {"$regex": `${nombre}.*${apellido}`}});
     res.status(200).json(response.data);
   } catch (error) {
     console.error('Error en consulta: ', error.message)

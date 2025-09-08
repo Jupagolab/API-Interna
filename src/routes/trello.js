@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addNewCard, getCardsBoard, getCustomFieldsBoard, getLabelsBoard, getMembersBoard, updateCard } from "../controllers/trello.js";
+import { addNewCard, getCardsBoard, getCustomFieldsBoard, getLabelsBoard, getCardsName, getMembersBoard, updateCard } from "../controllers/trello.js";
 
 const router = Router();
 
@@ -15,5 +15,8 @@ router.get("/boards/:id/cards", getCardsBoard)
 router.post("/cards", addNewCard)
 // ACTUALIZAR CARDS
 router.put("/cards/:id/customFields", updateCard)
+// OBTENER CARD POR NOMBRE
+router.post("/cards/name", getCardsName)
+
 
 export default router;
