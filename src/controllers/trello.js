@@ -26,8 +26,14 @@ export const getMembersBoard = async (req, res) => {
 export const getCardsName = async (req, res) => {
   try {
     const { nombre, apellido } = req.body;
-    const response = await Ventas.find({"nombre_completo": {$regex: `${nombre}.*${apellido}`}});
-    res.status(200).json(response.data);
+//    const response = await Ventas.find({"cedula": nombre})
+//    const response = await Ventas.find({"nombre_completo": {"$regex": `"${apellido}.*${nombre}"`}});
+      const response = await Ventas.find({
+      $and: [
+    { nombre_completo: { $regex: nombre, $options: "i" } },
+    { nombre_completo: { $regex: apellido, $options: "i" } }
+  ]})
+    res.status(200).json(response);
   } catch (error) {
     console.error('Error en consulta: ', error.message)
     if (error.response) {
