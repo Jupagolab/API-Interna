@@ -26,7 +26,7 @@ export const getMembersBoard = async (req, res) => {
 export const getCardsName = async (req, res) => {
   try {
     const { nombre, apellido } = req.body;
-    const response = await Ventas.find({"nombre_completo": {"$regex": `${nombre}.*${apellido}`}});
+    const response = await Ventas.find({"nombre_completo": {$regex: `${nombre}.*${apellido}`}});
     res.status(200).json(response.data);
   } catch (error) {
     console.error('Error en consulta: ', error.message)
