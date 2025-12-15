@@ -5,7 +5,6 @@ export const findPreventa = async (req, res) => {
   try {
     const { fecha1, fecha2 } = req.body;
 
-    console.log([fecha1, fecha2])
     const fechaInicio = new Date(fecha1);
     const fechaFin = new Date(fecha2);
 
