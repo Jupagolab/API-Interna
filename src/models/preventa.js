@@ -18,6 +18,11 @@ const preventaSchema = new Schema({
     required: true,
     default: Date.now()
   },
+  resolved: {
+    type: Boolean,
+    required: true,
+    default: false
+  }
 })
 
 const Preventa = model("preventa", preventaSchema);
