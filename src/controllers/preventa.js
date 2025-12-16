@@ -54,3 +54,26 @@ export const findPreventa = async (req, res) => {
     }
   }
 }
+
+export const markAsResolved = async (req, res) => {
+  try {
+    const { telefono } = req.query;
+    
+    // const resolvedPreventa = await Preventa.findOneAndUpdate({ telefono: `+${telefono}` }, { resolved: true })
+    const resolvedPreventa = await Preventa.findOneAndUpdate({ telefono }, { resolved: true })
+
+    if (!resolvedPreventa) return res.status(400).json({ message: "Ocurrio un error al actualizar la preventa" })
+
+    res.status(200).json({ message: "Preventa cerrada con éxito" })
+  } catch (error) {
+    console.error('Error en consulta: ', error.message)
+    if (error.response) {
+      // Propagamos el código de error de MongoDB
+      res.status(error.response.status).json({
+        error: error.response.data || 'Error from MongoDB'
+      });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+}
