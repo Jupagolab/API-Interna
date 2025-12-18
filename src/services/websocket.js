@@ -1,10 +1,5 @@
 import WebSocket from "ws";
-
-// --- CONFIGURACIÓN ---
-const CONFIG = {
-  subdomain: process.env.ADMINOLT_SUBDOMAIN,
-  token: process.env.ADMINOLT_API_TOKEN
-};
+import { ADMINOLT_CONFIG } from "../config/server.js";
 
 // ==========================================
 // HELPER: Función Reutilizable para WebSocket
@@ -13,7 +8,7 @@ const CONFIG = {
 export const conectarYEsperarWebSocket = (facility) => {
   return new Promise((resolve, reject) => {
     // URL estándar para sockets en AdminOLT
-    const wsUrl = `wss://${CONFIG.subdomain}.adminolt.com/ws/${facility}?subscribe-broadcast`;
+    const wsUrl = `wss://${ADMINOLT_CONFIG.subdomain}.adminolt.com/ws/${facility}?subscribe-broadcast`;
     console.log(`   -> Conectando al WS: ${wsUrl}`);
 
     const ws = new WebSocket(wsUrl);

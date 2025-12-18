@@ -12,6 +12,11 @@ const upload = multer({ dest: "uploads/" });
 
 const { PORT } = process.env;
 
+export const ADMINOLT_CONFIG = {
+  subdomain: process.env.ADMINOLT_SUBDOMAIN,
+  token: process.env.ADMINOLT_API_TOKEN
+};
+
 const app = express();
 
 app.use(cors());
