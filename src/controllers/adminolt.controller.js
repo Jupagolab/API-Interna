@@ -148,8 +148,6 @@ export const authorizeONU = async (req, res) => {
   // Los datos de la ONU vienen en el body del request
   const payload = req.body;
 
-  console.log(payload)
-
   try {
     const url = `https://${ADMINOLT_CONFIG.subdomain}.adminolt.com/api/onu/authorize/`;
 
