@@ -44,9 +44,5 @@ app.use("/api/openai", routeOpenAI);
 import routeAdminOLT from '../routes/adminolt.routes.js'
 app.use("/api/adminolt", routeAdminOLT);
 
-// ========= BIENVENIDA =========
-app.use("/api/", (req, res) => {
-  res.send("Bienvenido a la api de Integraciones de Holanet")
-})
 
 export default app;
