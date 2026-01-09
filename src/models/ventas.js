@@ -34,7 +34,7 @@ const VentasEsquema = new Schema({
     type: String,
     required: true,
   },
-});
+}, { timestamps: true });
 
 const Ventas = model("ventas", VentasEsquema);
 
