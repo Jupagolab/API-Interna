@@ -8,7 +8,6 @@ const VentasEsquema = new Schema({
   "cedula": {
     type: String,
     required: true,
-    unique: true,
   },
   "telefonos": {
     type: String,
@@ -17,6 +16,7 @@ const VentasEsquema = new Schema({
   "correo": {
     type: String,
     required: true,
+    unique: true
   },
   "direccion": {
     type: String,
