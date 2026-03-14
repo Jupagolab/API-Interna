@@ -49,6 +49,7 @@ app.use("/api/wisphub", routeWisp)
 // =============== WEBSOCKET ======================
 import routeAdminOLT from '../routes/adminolt.routes.js'
 app.use("/api/adminolt", routeAdminOLT);
-
+import routeSmartOLT from '../routes/smartolt.routes.js'
+app.use("/api/smartolt", routeSmartOLT);
 
 export default app;
