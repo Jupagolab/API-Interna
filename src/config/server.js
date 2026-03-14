@@ -8,7 +8,7 @@ import cors from 'cors';
 // Cargar .env EXPLÍCITAMENTE
 configDotenv({ path: '.env' });
 
-const upload = multer({ dest: "uploads/" });
+// const upload = multer({ dest: "uploads/" });
 
 const { PORT } = process.env;
 
@@ -20,9 +20,11 @@ export const ADMINOLT_CONFIG = {
 const app = express();
 
 app.use(cors());
+app.set("port", PORT || 4000);
+
+
 app.use(express.json());
 
-app.set("port", PORT || 4000);
 
 // Importar rutas
 // Rutas existentes
@@ -39,6 +41,10 @@ import routeAssemblyAI from '../routes/assembly.js';
 app.use("/api/assembly", routeAssemblyAI);
 import routeOpenAI from '../routes/openai.js';
 app.use("/api/openai", routeOpenAI);
+import routeRif from '../routes/rif.routes.js'
+app.use("/api/rif", routeRif);
+import routeWisp from '../routes/wisphub.js'
+app.use("/api/wisphub", routeWisp)
 
 // =============== WEBSOCKET ======================
 import routeAdminOLT from '../routes/adminolt.routes.js'
