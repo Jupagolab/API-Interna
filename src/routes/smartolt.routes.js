@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { autorizarONU } from "../controllers/smartolt.js";
+import { autorizarONU, setOnuWANMode } from "../controllers/smartolt.js";
 
 import multer from 'multer'
 import { verifyClientToken } from "../middleware/auth.js";
