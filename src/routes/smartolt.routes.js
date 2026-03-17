@@ -8,5 +8,6 @@ const router = Router();
 const upload = multer();
 
 router.post("/autorizar-onu", verifyClientToken, upload.none(), autorizarONU)
+router.post("/onu/set-onu-wan-mode/:sn_onu", verifyClientToken, upload.none(), setOnuWANMode)
 
 export default router;

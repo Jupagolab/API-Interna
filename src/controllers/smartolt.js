@@ -55,3 +55,50 @@ export const autorizarONU = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 }
+
+export const setOnuWANMode = async (req, res) => {
+  try {
+    const { sn_onu } = req.params;
+    const {
+      configuration_method,
+      ip_protocol,
+      ipv6_address_mode,
+      allow_access_from
+    } = req.body;
+
+    const formData = new FormData();
+
+    formData.append("configuration_method", configuration_method)
+    formData.append("ip_protocol", ip_protocol)
+    formData.append("ipv6_address_mode", ipv6_address_mode)
+
+    const formData2 = new FormData();
+    formData2.append("allow_access_from", allow_access_from)
+
+
+    const [data, data2] = await Promise.all([
+      axios.post(`https://holanet.smartolt.com/api/onu/set_onu_wan_mode/${sn_onu}`, formData, {
+        headers: credentials,
+      }),
+      axios.post(`https://holanet.smartolt.com/api/onu/set_onu_wan_mode_dhcp/${sn_onu}`, formData2, {
+        headers: credentials,
+      })
+    ])
+
+    if (data.status !== 200 || data2.status !== 200) {
+      return res.status(400).json({ error: "Error al configurar la ONU" });
+    }
+
+    const response = {
+      ...data.data,
+      ...data2.data
+    }
+    // const response = data.data;
+    // res.status(data.status === 200 ? 200 : data.status).json(response);
+    res.status(200).json(response);
+
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ error: error.message });
+  }
+}
