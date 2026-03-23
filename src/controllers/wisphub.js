@@ -21,6 +21,8 @@ export const crearTicket = async (req, res) => {
     const fecha_inicio = fmt(now);
     const fecha_fin = fmt(end);
 
+    console.log(fecha_inicio, fecha_fin)
+
     formData.append("servicio", servicio)
     formData.append("asunto", asunto)
     formData.append("asuntos_default", asunto)

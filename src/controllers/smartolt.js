@@ -77,10 +77,10 @@ export const setOnuWANMode = async (req, res) => {
 
 
     const [data, data2] = await Promise.all([
-      axios.post(`https://holanet.smartolt.com/api/onu/set_onu_wan_mode/${sn_onu}`, formData, {
+      axios.post(`https://holanet.smartolt.com/api/onu/set_onu_wan_mode_dhcp/${sn_onu}`, formData, {
         headers: credentials,
       }),
-      axios.post(`https://holanet.smartolt.com/api/onu/set_onu_wan_mode_dhcp/${sn_onu}`, formData2, {
+      axios.post(`https://holanet.smartolt.com/api/onu/enable_allow_remote_access_to_wan_ip/${sn_onu}`, formData2, {
         headers: credentials,
       })
     ])
