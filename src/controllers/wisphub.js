@@ -6,14 +6,15 @@ const credentials = {
 }
 
 //Formato de fecha para wisphub
-const now = new Date();
 const pad = n => String(n).padStart(2, '0');
 const fmt = d => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-const end = new Date(now);
-end.setHours(end.getHours() + 8);
 
 export const crearTicket = async (req, res) => {
   try {
+    const now = new Date();
+    const end = new Date(now);
+    end.setHours(end.getHours() + 8);
+
     const { servicio, asunto, tecnico, descripcion, estado, prioridad, departamento } = req.body;
 
     const formData = new FormData();
@@ -49,6 +50,10 @@ export const crearTicket = async (req, res) => {
 
 export const editarTicket = async (req, res) => {
   try {
+    const now = new Date();
+    const end = new Date(now);
+    end.setHours(end.getHours() + 8);
+
     const { id_ticket, tecnico } = req.body;
 
     const formData = new FormData();
