@@ -1,6 +1,6 @@
 node_modules
 .env
-.wwebjs_auth/        # ← Sesión de WhatsApp (credenciales locales)
-.wwebjs_cache/       # ← Caché de whatsapp-web.js
+.wwebjs_auth
+.wwebjs_cache
 dist/
 logs/
