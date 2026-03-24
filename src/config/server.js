@@ -25,7 +25,6 @@ app.set("port", PORT || 4000);
 
 app.use(express.json());
 
-
 // Importar rutas
 // Rutas existentes
 // TRELLO
@@ -45,6 +44,10 @@ import routeRif from '../routes/rif.routes.js'
 app.use("/api/rif", routeRif);
 import routeWisp from '../routes/wisphub.js'
 app.use("/api/wisphub", routeWisp)
+
+// WHATSAPP
+import routeWhatsApp from '../routes/whatsapp.routes.js';
+app.use("/api/whatsapp", routeWhatsApp);
 
 // =============== WEBSOCKET ======================
 import routeAdminOLT from '../routes/adminolt.routes.js'
