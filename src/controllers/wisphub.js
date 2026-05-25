@@ -9,7 +9,7 @@ const credentials = {
 const pad = n => String(n).padStart(2, '0');
 const fmt = d => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
-export const crearTicket = async (req, res) => {
+export const crearTicket = async (req, res, next) => {
   try {
     const now = new Date();
     const end = new Date(now);
@@ -42,13 +42,12 @@ export const crearTicket = async (req, res) => {
     res.status(data.status === 200 ? 200 : data.status).json(response);
 
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 
 }
 
-export const editarTicket = async (req, res) => {
+export const editarTicket = async (req, res, next) => {
   try {
     const now = new Date();
     const end = new Date(now);
@@ -73,8 +72,7 @@ export const editarTicket = async (req, res) => {
     res.status(data.status === 200 ? 200 : data.status).json(response);
 
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 
 }

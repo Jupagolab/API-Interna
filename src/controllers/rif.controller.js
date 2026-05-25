@@ -6,7 +6,7 @@
 
 import { consultarRIF } from '../services/seniat.service.js';
 
-export const getRIF = async (req, res) => {
+export const getRIF = async (req, res, next) => {
   // Acepta el parámetro tanto por query (?doc=J...) como por param de ruta (/:doc)
   const doc = req.params.doc || req.query.doc;
 
@@ -20,9 +20,7 @@ export const getRIF = async (req, res) => {
   } catch (err) {
     // Errores de validación → 400, errores de scraping → 502
     const esValidacion = /formato|cédula|rif|letra|dígit/i.test(err.message);
-    return res.status(esValidacion ? 400 : 502).json({
-      res: 'error',
-      mensaje: err.message,
-    });
+    err.status = esValidacion ? 400 : 502;
+    next(err);
   }
 }

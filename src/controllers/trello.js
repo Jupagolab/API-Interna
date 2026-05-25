@@ -5,25 +5,17 @@ configDotenv();
 
 const { TRELLO_ID_LIST_ASIGNAR } = process.env;
 
-export const getMembersBoard = async (req, res) => {
+export const getMembersBoard = async (req, res, next) => {
   try {
     const { id } = req.params;
     const response = await trelloClient.get(`/boards/${id}/members`);
     res.status(200).json(response.data);
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de Trello
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from Trello API'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }
 
-export const getCardsName = async (req, res) => {
+export const getCardsName = async (req, res, next) => {
   try {
     const { nombre, apellido } = req.body;
 //    const response = await Ventas.find({"cedula": nombre})
@@ -35,73 +27,41 @@ export const getCardsName = async (req, res) => {
   ]})
     res.status(200).json(response);
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de Trello
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from Trello API'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }
 
-export const getLabelsBoard = async (req, res) => {
+export const getLabelsBoard = async (req, res, next) => {
   try {
     const { id } = req.params;
     const response = await trelloClient.get(`/boards/${id}/labels`);
     res.status(200).json(response.data);
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de Trello
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from Trello API'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }
 
-export const getCustomFieldsBoard = async (req, res) => {
+export const getCustomFieldsBoard = async (req, res, next) => {
   try {
     const { id } = req.params;
     const response = await trelloClient.get(`/boards/${id}/customFields`);
     res.status(200).json(response.data);
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de Trello
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from Trello API'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }
 
-export const getCardsBoard = async (req, res) => {
+export const getCardsBoard = async (req, res, next) => {
   try {
     const { id } = req.params;
     const response = await trelloClient.get(`/boards/${id}/cards`);
     res.status(200).json(response.data);
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de Trello
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from Trello API'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }
 
-export const addNewCard = async (req, res) => {
+export const addNewCard = async (req, res, next) => {
   try {
     trelloClient.defaults.params["idList"] = TRELLO_ID_LIST_ASIGNAR;
     const { name, desc, labels, members } = req.body;
@@ -115,32 +75,16 @@ export const addNewCard = async (req, res) => {
     const response = await trelloClient.post(`/cards`);
     res.status(200).json(response.data);
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de Trello
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from Trello API'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }
-export const updateCard = async (req, res) => {
+export const updateCard = async (req, res, next) => {
   try {
     const { id } = req.params;
     const customFields = req.body;
     const response = await trelloClient.put(`/cards/${id}/customFields`, customFields);
     res.status(200).json(response.data);
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de Trello
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from Trello API'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }

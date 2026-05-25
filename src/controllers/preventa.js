@@ -1,7 +1,7 @@
 import Preventa from "../models/preventa.js";
 import Sorteo from "../models/sorteo.js";
 
-export const findPreventa = async (req, res) => {
+export const findPreventa = async (req, res, next) => {
   try {
     const { fecha1, fecha2 } = req.body;
 
@@ -43,19 +43,11 @@ export const findPreventa = async (req, res) => {
       message: "OK"
     })
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de MongoDB
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from MongoDB'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }
 
-export const markAsResolved = async (req, res) => {
+export const markAsResolved = async (req, res, next) => {
   try {
     const { telefono } = req.query;
     
@@ -66,14 +58,6 @@ export const markAsResolved = async (req, res) => {
 
     res.status(200).json({ message: "Preventa cerrada con éxito" })
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de MongoDB
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from MongoDB'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }

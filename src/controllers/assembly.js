@@ -7,7 +7,7 @@ const baseUrl = ASSEMBLY_BASE_URL;
 const headers = {
   authorization: ASSEMBLY_API_KEY, // ⚠️ Reemplaza con tu API Key real
 };
-export const transcribeAudio = async (req, res) => {
+export const transcribeAudio = async (req, res, next) => {
   try {
     const { audioUrl } = req.body;
     if (!audioUrl) {
@@ -48,8 +48,7 @@ export const transcribeAudio = async (req, res) => {
       transcriptionResult
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error en la transcripción" });
+    next(err);
   }
 
 }

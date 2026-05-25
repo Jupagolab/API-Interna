@@ -8,7 +8,7 @@ const openai = new OpenAI({
 });
 
 // Endpoint para recibir audio por link
-export const transcribeAudio = async (req, res) => {
+export const transcribeAudio = async (req, res, next) => {
   try {
     const { audioUrl } = req.body;
 
@@ -33,7 +33,6 @@ export const transcribeAudio = async (req, res) => {
 
     res.json({ texto: transcription.text });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error procesando el audio" });
+    next(error);
   }
 };

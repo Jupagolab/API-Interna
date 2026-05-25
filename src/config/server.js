@@ -55,4 +55,8 @@ app.use("/api/adminolt", routeAdminOLT);
 import routeSmartOLT from '../routes/smartolt.routes.js'
 app.use("/api/smartolt", routeSmartOLT);
 
+// Middleware global para manejo de errores
+import { errorHandler } from '../middleware/errorHandler.js';
+app.use(errorHandler);
+
 export default app;

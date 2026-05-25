@@ -5,7 +5,7 @@ const credentials = {
   "X-Token": API_KEY_SMARTOLT
 }
 
-export const autorizarONU = async (req, res) => {
+export const autorizarONU = async (req, res, next) => {
   try {
     const {
       olt_id,
@@ -51,12 +51,11 @@ export const autorizarONU = async (req, res) => {
     res.status(data.status === 200 ? 200 : data.status).json(response);
 
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 }
 
-export const setOnuWANMode = async (req, res) => {
+export const setOnuWANMode = async (req, res, next) => {
   try {
     const { sn_onu } = req.params;
     const {
@@ -76,17 +75,22 @@ export const setOnuWANMode = async (req, res) => {
     formData2.append("allow_access_from", allow_access_from)
 
 
-    const [data, data2] = await Promise.all([
-      axios.post(`https://holanet.smartolt.com/api/onu/set_onu_wan_mode_dhcp/${sn_onu}`, formData, {
-        headers: credentials,
-      }),
-      axios.post(`https://holanet.smartolt.com/api/onu/enable_allow_remote_access_to_wan_ip/${sn_onu}`, formData2, {
-        headers: credentials,
-      })
-    ])
+    // 1. Primero configuramos el modo DHCP
+    const data = await axios.post(`https://holanet.smartolt.com/api/onu/set_onu_wan_mode_dhcp/${sn_onu}`, formData, {
+      headers: credentials,
+    });
 
-    if (data.status !== 200 || data2.status !== 200) {
-      return res.status(400).json({ error: "Error al configurar la ONU" });
+    if (data.status !== 200) {
+      return res.status(400).json({ error: "Error al configurar DHCP en la ONU" });
+    }
+
+    // 2. Esperamos a que la ONU procese la config anterior y habilitamos acceso remoto
+    const data2 = await axios.post(`https://holanet.smartolt.com/api/onu/enable_allow_remote_access_to_wan_ip/${sn_onu}`, formData2, {
+      headers: credentials,
+    });
+
+    if (data2.status !== 200) {
+      return res.status(400).json({ error: "Error al habilitar acceso remoto a WAN" });
     }
 
     const response = {
@@ -98,7 +102,6 @@ export const setOnuWANMode = async (req, res) => {
     res.status(200).json(response);
 
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 }

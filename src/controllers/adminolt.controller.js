@@ -2,7 +2,7 @@ import axios from "axios";
 import { conectarYEsperarWebSocket } from "../services/websocket.js";
 import { ADMINOLT_CONFIG } from "../config/server.js";
 
-export const getOLTList = async (req, res) => {
+export const getOLTList = async (req, res, next) => {
   try {
     const url = `https://${ADMINOLT_CONFIG.subdomain}.adminolt.com/api/olt-list/`;
     const response = await axios.get(url, {
@@ -10,11 +10,11 @@ export const getOLTList = async (req, res) => {
     });
     res.json(response.data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 }
 
-export const getVLANsList = async (req, res) => {
+export const getVLANsList = async (req, res, next) => {
   const oltId = req.params.id;
   console.log(`--- Buscando VLANs para OLT ID: ${oltId} ---`);
 
@@ -45,12 +45,11 @@ export const getVLANsList = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error en VLANs:', error.message);
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 }
 
-export const getONUsUnauthorized = async (req, res) => {
+export const getONUsUnauthorized = async (req, res, next) => {
   console.log('--- Iniciando búsqueda de ONUs No Autorizadas ---');
   try {
     // Paso A: Pedir facility
@@ -74,13 +73,12 @@ export const getONUsUnauthorized = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error en ONUs:', error.message);
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 }
 
 // Validar Estado de la ONU (Online/Offline/Los)
-export const getONUStatus = async (req, res) => {
+export const getONUStatus = async (req, res, next) => {
   const idOnu = req.params.id; // ID interno de AdminOLT
   console.log(`--- Consultando Estado para ONU ID: ${idOnu} ---`);
 
@@ -105,13 +103,12 @@ export const getONUStatus = async (req, res) => {
     res.json({ success: true, data: data });
 
   } catch (error) {
-    console.error('Error consultando estado:', error.message);
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 }
 
 // Obtener Señal Óptica (RX) en tiempo real
-export const getONUSignal = async (req, res) => {
+export const getONUSignal = async (req, res, next) => {
   const idOnu = req.params.id;
   console.log(`--- Midiendo Señal para ONU ID: ${idOnu} ---`);
 
@@ -137,12 +134,11 @@ export const getONUSignal = async (req, res) => {
     res.json({ success: true, data: data });
 
   } catch (error) {
-    console.error('Error obteniendo señal:', error.message);
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 }
 
-export const authorizeONU = async (req, res) => {
+export const authorizeONU = async (req, res, next) => {
   console.log('--- Iniciando Autorización de ONU ---');
 
   // Los datos de la ONU vienen en el body del request
@@ -179,16 +175,11 @@ export const authorizeONU = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error autorizando ONU:', error.message);
-    // Manejo de errores detallado (útil si falta un campo requerido como 'sn' o 'port')
-    res.status(500).json({
-      error: error.message,
-      details: error.response?.data || null
-    });
+    next(error);
   }
 }
 
-export const enableONU = async (req, res) => {
+export const enableONU = async (req, res, next) => {
   const idOnu = req.params.id; // ID interno de AdminOLT
   console.log(`--- Activando ONU ID: ${idOnu} ---`);
 
@@ -224,15 +215,11 @@ export const enableONU = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error activando ONU:', error.message);
-    res.status(500).json({ 
-        error: error.message,
-        details: error.response?.data || null 
-    });
+    next(error);
   }
 }
 
-export const disableONU = async (req, res) => {
+export const disableONU = async (req, res, next) => {
   const idOnu = req.params.id; // ID interno de AdminOLT
   console.log(`--- Desactivando ONU ID: ${idOnu} ---`);
 
@@ -268,10 +255,6 @@ export const disableONU = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error desactivando ONU:', error.message);
-    res.status(500).json({ 
-        error: error.message,
-        details: error.response?.data || null 
-    });
+    next(error);
   }
 }

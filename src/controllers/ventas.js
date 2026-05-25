@@ -1,6 +1,6 @@
 import Ventas from '../models/ventas.js';
 
-export const addVenta = async (req, res) => {
+export const addVenta = async (req, res, next) => {
   try {
     const { nombre_completo, cedula, direccion, telefonos, correo, plan, vendedor } = req.body;
     const compra_router = req.body["compra-router"];
@@ -11,14 +11,6 @@ export const addVenta = async (req, res) => {
 
     res.status(201).json({ message: "Venta agregada a la base de datos con éxito" });
   } catch (error) {
-    console.error('Error en consulta: ', error.message)
-    if (error.response) {
-      // Propagamos el código de error de MongoDB
-      res.status(error.response.status).json({
-        error: error.response.data || 'Error from MongoDB'
-      });
-    } else {
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    next(error);
   }
 }

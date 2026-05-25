@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+// import dns from 'node:dns/promises';
+
+// dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 const { DB_HOST, DB_NAME, DB_PASS } = process.env;
 
