@@ -68,7 +68,7 @@ export const setOnuWANMode = async (req, res, next) => {
     const formData = new FormData();
 
     formData.append("configuration_method", configuration_method)
-    formData.append("ip_protocol", ip_protocol)
+    // formData.append("ip_protocol", ip_protocol)
     formData.append("ipv6_address_mode", ipv6_address_mode)
 
     const formData2 = new FormData();
