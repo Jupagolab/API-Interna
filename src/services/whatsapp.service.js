@@ -29,12 +29,28 @@ client.on('qr', (qr) => {
 
 client.on('ready', () => console.log('✅ WhatsApp conectado'));
 
-client.on('disconnected', (reason) => {
+client.on('disconnected', async (reason) => {
   console.log('⚠️ WhatsApp desconectado:', reason);
-  client.initialize();
+  try {
+    await client.initialize();
+  } catch (error) {
+    console.error('❌ Error al intentar reconectar WhatsApp:', error.message);
+  }
 });
 
-export const initWhatsApp = () => client.initialize();
+export const initWhatsApp = async (retries = 3) => {
+  try {
+    await client.initialize();
+  } catch (error) {
+    console.error('⚠️ Error al inicializar WhatsApp:', error.message);
+    if (retries > 0) {
+      console.log(`Reintentando inicialización en 5 segundos... (Intentos restantes: ${retries})`);
+      setTimeout(() => initWhatsApp(retries - 1), 5000);
+    } else {
+      console.error('❌ Fallo crítico: No se pudo inicializar WhatsApp después de varios intentos.');
+    }
+  }
+};
 
 export const sendChannelMessage = async (text) => {
   return await client.pupPage.evaluate(async (chId, msg) => {
