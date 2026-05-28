@@ -53,21 +53,16 @@ export const initWhatsApp = async (retries = 3) => {
 };
 
 export const sendChannelMessage = async (text) => {
-  return await client.pupPage.evaluate(async (chId, msg) => {
-    try {
-      const newsletter = window.Store.WAWebNewsletterCollection._models.find(
-        n => n.id._serialized === chId
-      );
-      if (!newsletter) return { error: 'Canal no encontrado' };
-
-      await window.Store.SendChannelMessage.sendNewsletterTextMsg(
-        newsletter,
-        msg,
-        { linkPreview: null }
-      );
-      return { success: true };
-    } catch (e) {
-      return { error: e.message };
-    }
-  }, CHANNEL_ID, text);
+  try {
+    // Validar formato del ID del canal (debe terminar en @newsletter)
+    const chatId = CHANNEL_ID.includes('@') ? CHANNEL_ID : `${CHANNEL_ID}@newsletter`;
+    
+    // Usamos el método nativo en lugar de inyección de código
+    await client.sendMessage(chatId, text);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error enviando mensaje al canal de WhatsApp:', error.message);
+    return { error: error.message };
+  }
 };
