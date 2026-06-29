@@ -233,9 +233,9 @@ export const getStatusServicios = async (req, res, next) => {
                     porcentaje_critico: porcentajeCritico,
                     reportes: reportesOrganizados,
                     sub_servicios: subServiciosOrganizados,
-                    // hora_inicial : inicio24h.toISOString(),
+                    hora_inicial: inicio24h.toISOString(),
                     historial_status: historialOrganizado,
-                    // hora_final : horaActual.toISOString(),
+                    hora_final: horaActual.toISOString(),
                 };
 
             } catch (error) {
