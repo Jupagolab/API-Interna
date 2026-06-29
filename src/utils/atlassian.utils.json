@@ -1,0 +1,82 @@
+[
+    {
+        "id": "yh6f0r4529hb",
+        "name": "Cloudflare",
+        "url": "https://www.cloudflarestatus.com"
+    },
+    {
+        "id": "kctbh9vrtdwd",
+        "name": "GitHub",
+        "url": "https://www.githubstatus.com"
+    },
+    {
+        "id": "h5frqhb041yq",
+        "name": "Trello",
+        "url": "https://trello.status.atlassian.com"
+    },
+    {
+        "id": "0f54fx204jpt",
+        "name": "Atlassian (Jira, Confluence)",
+        "url": "https://status.atlassian.com"
+    },
+    {
+        "id": "srh5vdcdv559",
+        "name": "Discord",
+        "url": "https://discordstatus.com"
+    },
+    {
+        "id": "mjt5lcww1v6q",
+        "name": "DigitalOcean",
+        "url": "https://status.digitalocean.com"
+    },
+    {
+        "id": "b9q90j7hvwcn",
+        "name": "Shopify",
+        "url": "https://www.shopifystatus.com"
+    },
+    {
+        "id": "50w4vj503w3y",
+        "name": "Reddit",
+        "url": "https://www.redditstatus.com"
+    },
+    {
+        "id": "t34htyd6jblf",
+        "name": "Dropbox",
+        "url": "https://status.dropbox.com"
+    },
+    {
+        "id": "gkxqbvj1lz56",
+        "name": "Twilio",
+        "url": "https://status.twilio.com"
+    },
+    {
+        "id": "d35mdfvshqgq",
+        "name": "Figma",
+        "url": "https://status.figma.com"
+    },
+    {
+        "id": "b6070622bb85",
+        "name": "Bitbucket",
+        "url": "https://bitbucket.status.atlassian.com"
+    },
+    {
+        "id": "db0nwnx4tpf2",
+        "name": "Epic Games",
+        "url": "https://status.epicgames.com"
+    },
+    {
+        "id": "7q4w8m0d0g0z",
+        "name": "Vercel",
+        "url": "https://www.vercel-status.com"
+    },
+    {
+        "id": "p222fzd66099",
+        "name": "NPM",
+        "url": "https://status.npmjs.org"
+    },
+    {
+        "id": "z942z61p48g0",
+        "name": "Notion",
+        "url": "https://status.notion.so"
+    }
+]

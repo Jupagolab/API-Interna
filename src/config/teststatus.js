@@ -5,7 +5,7 @@ const testStatusphere = async () => {
         console.log("Conectando a Statusphere...");
 
         // Hacemos la petición a la instancia pública
-        const response = await axios.get(`https://statusphere.tech/api/v1/statusPage`, {
+        const response = await axios.get(`https://statusphere.tech/api/v3/statusPage`, {
             params: {
                 statusPageName: "cloudflare" // Aquí puedes cambiar a 'github', 'discord', etc.
             },

@@ -1,17 +1,23 @@
 import { getBoards, getBoardMonitors, getMonitorHistory, getMonitorComponents } from "../services/statusgator.service.js";
+import { getSummary, getIncidents } from "../services/atlassian.service.js";
+import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Estandarizar el status de los servicios
 const definirStatus = (status) => {
     if (!status) return [1, "operativo"];
     const s = String(status).toLowerCase();
-    if (s === "up" || s === "operational" || s === "operativo" || s === "ok" || s === "resolved") {
+    if (s === "up" || s === "operational" || s === "operativo" || s === "ok" || s === "resolved" || s === "none") {
         return [1, "operativo"];
     }
-    if (s === "warn" || s === "degraded" || s === "warning" || s === "advertencia" || s === "minor" || s === "maintenance") {
+    if (s === "warn" || s === "degraded" || s === "warning" || s === "advertencia" || s === "minor" || s === "maintenance" || s === "degraded_performance" || s === "partial_outage" || s === "under_maintenance") {
         return [2, "advertencia"];
     }
-    if (s === "down" || s === "danger" || s === "critico" || s === "critical" || s === "major") {
+    if (s === "down" || s === "danger" || s === "critico" || s === "critical" || s === "major" || s === "major_outage") {
         return [3, "critico"];
     }
     return [1, "operativo"];
@@ -194,98 +200,173 @@ const hallarMetricasSubServicios = (subServicios) => {
 };
 
 
-// Controlador principal para StatusGator
+// Controlador principal para unificar StatusGator y Atlassian API
 export const getStatusServicios = async (req, res, next) => {
     try {
-        // 1. Obtener el Board ID
-        const boards = await getBoards();
-        const boardHolanet = boards.data.find(board =>
-            board.name === "Holanet CA" || board.name === "Holanet, C.A."
-        );
-
-        if (!boardHolanet) {
-            return res.status(404).json({ success: false, error: "No se encontró el board Holanet en StatusGator" });
-        }
-        console.log(`Board Holanet encontrado: ${boardHolanet.name} (ID: ${boardHolanet.id})`);
-
-
-        const servicios = await getBoardMonitors(boardHolanet.id);
-        const serviciosActivos = Array.isArray(servicios?.data) ? servicios.data : [];
-        console.log(`Servicios obtenidos del board ${boardHolanet.name}:`, serviciosActivos);
-
-        if (!serviciosActivos.length) {
-            return res.status(404).json({ success: false, error: `No se encontraron servicios en el board ${boardHolanet.name}` });
-        }
-
-        // // Fecha actual para obtener ultimas 24horas
         const horaActual = new Date();
         const inicio24h = new Date(horaActual.getTime() - 24 * 60 * 60 * 1000);
 
-        // Pedimos historial de los últimos 2 días para prever reportes de larga duración
         const start = new Date();
         start.setDate(start.getDate() - 2);
         const startDate = start.toISOString().split('T')[0];
         const endDate = horaActual.toISOString().split('T')[0];
 
-        // Mapear cada servicio activo
+        // --- 1. OBTENER DATOS DE STATUSGATOR ---
+        let informacionServiciosStatusGator = [];
+        try {
+            const boards = await getBoards();
+            const boardHolanet = boards.data.find(board =>
+                board.name === "Holanet CA" || board.name === "Holanet, C.A."
+            );
 
-        const informacionServicios = await Promise.all(serviciosActivos.map(async (servicio) => {
-            try {
-                console.log(`Servicio a analizar: ${servicio.display_name || servicio.id}`);
-                const [historialRes, componentsRes] = await Promise.allSettled([
-                    getMonitorHistory(boardHolanet.id, servicio.id, startDate, endDate),
-                    getMonitorComponents(boardHolanet.id, servicio.id).catch(err => {
-                        console.error(`[StatusGator] Error obteniendo componentes para ${servicio.id}:`, err.message);
-                        return { data: [] };
-                    })
-                ]);
+            if (boardHolanet) {
+                console.log(`[StatusGator] Board Holanet encontrado: ${boardHolanet.name} (ID: ${boardHolanet.id})`);
+                const servicios = await getBoardMonitors(boardHolanet.id);
+                const serviciosActivos = Array.isArray(servicios?.data) ? servicios.data : [];
 
-                const historialData = historialRes.status === "fulfilled" ? historialRes.value?.data ?? [] : [];
-                console.log(`Historial para ${servicio.display_name || servicio.id}:`, historialData);
+                if (serviciosActivos.length) {
+                    const rawDataStatusGator = await Promise.all(serviciosActivos.map(async (servicio) => {
+                        try {
+                            const [historialRes, componentsRes] = await Promise.allSettled([
+                                getMonitorHistory(boardHolanet.id, servicio.id, startDate, endDate),
+                                getMonitorComponents(boardHolanet.id, servicio.id).catch(err => {
+                                    console.error(`[StatusGator] Error obteniendo componentes para ${servicio.id}:`, err.message);
+                                    return { data: [] };
+                                })
+                            ]);
 
-                const componentsData = componentsRes.status === "fulfilled" ? componentsRes.value?.data ?? [] : [];
-                console.log(`Componentes para ${servicio.display_name || servicio.id}:`, componentsData);
+                            const historialData = historialRes.status === "fulfilled" ? historialRes.value?.data ?? [] : [];
+                            const componentsData = componentsRes.status === "fulfilled" ? componentsRes.value?.data ?? [] : [];
 
-                const reportesOrganizados = organizarReportes(historialData, inicio24h, horaActual);
-                const subServiciosOrganizados = organizarSubServicios(componentsData);
+                            const reportesOrganizados = organizarReportes(historialData, inicio24h, horaActual);
+                            const subServiciosOrganizados = organizarSubServicios(componentsData);
 
-                const { porcentajeOperativo, porcentajeAdvertencia, porcentajeCritico } = hallarMetricas(reportesOrganizados, inicio24h, horaActual);
-                const { porcentajeOperativo_subservicio, porcentajeAdvertencia_subservicio, porcentajeCritico_subservicio } = hallarMetricasSubServicios(subServiciosOrganizados);
-                const [statusValue, statusText] = definirStatus(servicio.filtered_status);
+                            const { porcentajeOperativo, porcentajeAdvertencia, porcentajeCritico } = hallarMetricas(reportesOrganizados, inicio24h, horaActual);
+                            const { porcentajeOperativo_subservicio, porcentajeAdvertencia_subservicio, porcentajeCritico_subservicio } = hallarMetricasSubServicios(subServiciosOrganizados);
+                            const [statusValue, statusText] = definirStatus(servicio.filtered_status);
 
-                const historialOrganizado = historialStatus(reportesOrganizados, inicio24h, horaActual);
+                            const historialOrganizado = historialStatus(reportesOrganizados, inicio24h, horaActual);
 
-                return {
-                    fuente: "StatusGator",
-                    id_servicio: servicio.id,
-                    servicio: servicio.display_name || servicio.service?.name || "Desconocido",
-                    status_actual: statusValue,
-                    status_actual_text: statusText,
-                    porcentaje_operativo: porcentajeOperativo,
-                    porcentaje_advertencia: porcentajeAdvertencia,
-                    porcentaje_critico: porcentajeCritico,
-                    porcentaje_operativo_subservicio: porcentajeOperativo_subservicio,
-                    porcentaje_advertencia_subservicio: porcentajeAdvertencia_subservicio,
-                    porcentaje_critico_subservicio: porcentajeCritico_subservicio,
-                    reportes: reportesOrganizados,
-                    sub_servicios: subServiciosOrganizados,
-                    hora_inicial: inicio24h.toISOString(),
-                    historial_status: historialOrganizado,
-                    hora_final: horaActual.toISOString(),
-                };
+                            return {
+                                fuente: "StatusGator",
+                                id_servicio: servicio.id,
+                                servicio: servicio.display_name || servicio.service?.name || "Desconocido",
+                                status_actual: statusValue,
+                                status_actual_text: statusText,
+                                porcentaje_operativo: porcentajeOperativo,
+                                porcentaje_advertencia: porcentajeAdvertencia,
+                                porcentaje_critico: porcentajeCritico,
+                                porcentaje_operativo_subservicio: porcentajeOperativo_subservicio,
+                                porcentaje_advertencia_subservicio: porcentajeAdvertencia_subservicio,
+                                porcentaje_critico_subservicio: porcentajeCritico_subservicio,
+                                reportes: reportesOrganizados,
+                                sub_servicios: subServiciosOrganizados,
+                                hora_inicial: inicio24h.toISOString(),
+                                historial_status: historialOrganizado,
+                                hora_final: horaActual.toISOString(),
+                            };
 
-            } catch (error) {
-                console.error(`Error obteniendo datos para el servicio ${servicio.display_name || servicio.service?.name || servicio.id}:`, error);
-                return { service: servicio.display_name || servicio.service?.name || servicio.id, error: "Error al obtener datos" };
+                        } catch (error) {
+                            console.error(`[StatusGator] Error con servicio ${servicio.display_name || servicio.id}:`, error.message);
+                            return null;
+                        }
+                    }));
+                    informacionServiciosStatusGator = rawDataStatusGator.filter(item => item !== null);
+                } else {
+                    console.log(`[StatusGator] No se encontraron servicios en el board ${boardHolanet.name}`);
+                }
             }
-        }));
+        } catch (error) {
+            console.error("[StatusGator] Error general:", error.message);
+        }
 
-        console.log("Información de servicios obtenida exitosamente:", informacionServicios);
-        res.json(informacionServicios);
+        // --- 2. OBTENER DATOS DE ATLASSIAN API ---
+        let informacionServiciosAtlassian = [];
+        try {
+            const atlassianUtilsPath = join(__dirname, '../utils/atlassian.utils.json');
+            const atlassianUtilsRaw = await fs.readFile(atlassianUtilsPath, 'utf-8');
+            const atlassianPages = JSON.parse(atlassianUtilsRaw);
+
+            const rawDataAtlassian = await Promise.all(atlassianPages.map(async (page) => {
+                try {
+                    const [summaryData, incidentsData] = await Promise.all([
+                        getSummary(page.id),
+                        getIncidents(page.id)
+                    ]);
+
+                    if (!summaryData || !summaryData.page) return null;
+
+                    const mappedIncidents = (incidentsData?.incidents || []).map(inc => {
+                        let endedAt = inc.resolved_at;
+                        if (!endedAt && inc.status === "resolved") endedAt = inc.updated_at;
+                        return {
+                            started_at: inc.started_at || inc.created_at,
+                            ended_at: endedAt,
+                            status: inc.impact,
+                            message: inc.name,
+                            name: summaryData.page.name || page.name
+                        };
+                    });
+
+                    const reportesOrganizados = organizarReportes(mappedIncidents, inicio24h, horaActual);
+                    const subServiciosOrganizados = organizarSubServicios(summaryData.components || []);
+
+                    const { porcentajeOperativo, porcentajeAdvertencia, porcentajeCritico } = hallarMetricas(reportesOrganizados, inicio24h, horaActual);
+                    const { porcentajeOperativo_subservicio, porcentajeAdvertencia_subservicio, porcentajeCritico_subservicio } = hallarMetricasSubServicios(subServiciosOrganizados);
+
+                    const [statusValue, statusText] = definirStatus(summaryData.status?.indicator);
+                    const historialOrganizado = historialStatus(reportesOrganizados, inicio24h, horaActual);
+
+                    return {
+                        fuente: "Atlassian API",
+                        id_servicio: page.id,
+                        servicio: summaryData.page.name || page.name,
+                        status_actual: statusValue,
+                        status_actual_text: statusText,
+                        porcentaje_operativo: porcentajeOperativo,
+                        porcentaje_advertencia: porcentajeAdvertencia,
+                        porcentaje_critico: porcentajeCritico,
+                        porcentaje_operativo_subservicio: porcentajeOperativo_subservicio,
+                        porcentaje_advertencia_subservicio: porcentajeAdvertencia_subservicio,
+                        porcentaje_critico_subservicio: porcentajeCritico_subservicio,
+                        reportes: reportesOrganizados,
+                        sub_servicios: subServiciosOrganizados,
+                        hora_inicial: inicio24h.toISOString(),
+                        historial_status: historialOrganizado,
+                        hora_final: horaActual.toISOString(),
+                    };
+                } catch (error) {
+                    console.error(`[Atlassian API] Error con servicio ${page.name}:`, error.message);
+                    return null;
+                }
+            }));
+            informacionServiciosAtlassian = rawDataAtlassian.filter(item => item !== null);
+        } catch (error) {
+            console.error("[Atlassian API] Error general:", error.message);
+        }
+
+        // --- 3. UNIFICACION ---
+        let result = [];
+        if (informacionServiciosStatusGator.length > 0 && informacionServiciosAtlassian.length > 0) {
+            result = [...informacionServiciosStatusGator, ...informacionServiciosAtlassian];
+        } else if (informacionServiciosStatusGator.length > 0) {
+            console.log("Atlassian API no obtuvo servicios, solo se envían los de StatusGator.");
+            result = [...informacionServiciosStatusGator];
+        } else if (informacionServiciosAtlassian.length > 0) {
+            console.log("StatusGator no obtuvo servicios, solo se envían los de Atlassian API.");
+            result = [...informacionServiciosAtlassian];
+        } else {
+            return res.status(404).json({ success: false, error: "No se pudieron obtener servicios de ninguna fuente" });
+        }
+
+        console.log(`Unificación completada: ${informacionServiciosStatusGator.length} (StatusGator) + ${informacionServiciosAtlassian.length} (Atlassian) = ${result.length} total.`);
+        console.log(result.length);
+
+        res.json(result);
 
     } catch (error) {
-        console.error("Error obteniendo datos de StatusGator:", error);
-        next(error); // Pasa el error a tu errorHandler global (Imagen 3)
+        console.error("Error obteniendo datos de StatusServicios:", error);
+        next(error);
     }
 };
 
