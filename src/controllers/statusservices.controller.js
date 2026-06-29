@@ -53,7 +53,7 @@ const historialStatus = (reportesOrganizados, inicio24h, horaActual) => {
     }
 
     if (!reportesOrganizados || reportesOrganizados.length === 0) {
-        return [{ inicio: inicio24h.toISOString(), status_num: 1 }];
+        return [{ inicio: inicio24h.toISOString(), status_num: 1, motivo: "Servicio operando con normalidad" }];
     }
 
     const sortedReportes = [...reportesOrganizados].sort((a, b) => new Date(a.hora_inicio) - new Date(b.hora_inicio));
@@ -64,7 +64,7 @@ const historialStatus = (reportesOrganizados, inicio24h, horaActual) => {
         if (to.getTime() > from.getTime()) {
             const last = timeline[timeline.length - 1];
             if (!last || last.status_num !== 1 || last.inicio !== from.toISOString()) {
-                timeline.push({ inicio: from.toISOString(), status_num: 1 });
+                timeline.push({ inicio: from.toISOString(), status_num: 1, motivo: "Servicio operando con normalidad" });
             }
         }
     };
@@ -87,17 +87,17 @@ const historialStatus = (reportesOrganizados, inicio24h, horaActual) => {
         const [statusNum] = definirStatus(reporte.status_text);
         const last = timeline[timeline.length - 1];
         if (!last || last.status_num !== statusNum || last.inicio !== inicioClipped.toISOString()) {
-            timeline.push({ inicio: inicioClipped.toISOString(), status_num: statusNum });
+            timeline.push({ inicio: inicioClipped.toISOString(), status_num: statusNum, motivo: reporte.motivo });
         }
 
         cursor = new Date(Math.max(cursor.getTime(), finClipped.getTime()));
     });
 
     if (cursor.getTime() < horaActual.getTime()) {
-        timeline.push({ inicio: cursor.toISOString(), status_num: 1 });
+        timeline.push({ inicio: cursor.toISOString(), status_num: 1, motivo: "Servicio operando con normalidad" });
     }
 
-    return timeline.length ? timeline : [{ inicio: inicio24h.toISOString(), status_num: 1 }];
+    return timeline.length ? timeline : [{ inicio: inicio24h.toISOString(), status_num: 1, motivo: "Servicio operando con normalidad" }];
 };
 
 
@@ -161,6 +161,38 @@ const organizarSubServicios = (componentes) => {
     return componentesListos;
 };
 
+// Calcular porcentajes de estado de los sub-servicios por conteo
+const hallarMetricasSubServicios = (subServicios) => {
+    if (!subServicios || subServicios.length === 0) {
+        return {
+            porcentajeOperativo_subservicio: 100,
+            porcentajeAdvertencia_subservicio: 0,
+            porcentajeCritico_subservicio: 0
+        };
+    }
+
+    const total = subServicios.length;
+    let operativos = 0;
+    let advertencias = 0;
+    let criticos = 0;
+
+    subServicios.forEach(sub => {
+        if (sub.status === 3) {
+            criticos++;
+        } else if (sub.status === 2) {
+            advertencias++;
+        } else {
+            operativos++;
+        }
+    });
+
+    return {
+        porcentajeOperativo_subservicio: (operativos / total) * 100,
+        porcentajeAdvertencia_subservicio: (advertencias / total) * 100,
+        porcentajeCritico_subservicio: (criticos / total) * 100
+    };
+};
+
 
 // Controlador principal para StatusGator
 export const getStatusServicios = async (req, res, next) => {
@@ -218,6 +250,7 @@ export const getStatusServicios = async (req, res, next) => {
                 const subServiciosOrganizados = organizarSubServicios(componentsData);
 
                 const { porcentajeOperativo, porcentajeAdvertencia, porcentajeCritico } = hallarMetricas(reportesOrganizados, inicio24h, horaActual);
+                const { porcentajeOperativo_subservicio, porcentajeAdvertencia_subservicio, porcentajeCritico_subservicio } = hallarMetricasSubServicios(subServiciosOrganizados);
                 const [statusValue, statusText] = definirStatus(servicio.filtered_status);
 
                 const historialOrganizado = historialStatus(reportesOrganizados, inicio24h, horaActual);
@@ -231,6 +264,9 @@ export const getStatusServicios = async (req, res, next) => {
                     porcentaje_operativo: porcentajeOperativo,
                     porcentaje_advertencia: porcentajeAdvertencia,
                     porcentaje_critico: porcentajeCritico,
+                    porcentaje_operativo_subservicio: porcentajeOperativo_subservicio,
+                    porcentaje_advertencia_subservicio: porcentajeAdvertencia_subservicio,
+                    porcentaje_critico_subservicio: porcentajeCritico_subservicio,
                     reportes: reportesOrganizados,
                     sub_servicios: subServiciosOrganizados,
                     hora_inicial: inicio24h.toISOString(),
@@ -253,182 +289,3 @@ export const getStatusServicios = async (req, res, next) => {
     }
 };
 
-// // Helper para normalizar los estados de StatusGator
-// const normalizarEstadoSG = (status) => {
-//     if (!status) return "operativo";
-//     const s = status.toLowerCase();
-//     if (s === "up" || s === "operational" || s === "operativo" || s === "ok" || s === "resolved") {
-//         return "operativo";
-//     }
-//     if (s === "warn" || s === "degraded" || s === "warning" || s === "advertencia" || s === "minor" || s === "maintenance") {
-//         return "advertencia";
-//     }
-//     if (s === "down" || s === "danger" || s === "critico" || s === "critical" || s === "major") {
-//         return "critico";
-//     }
-//     return "operativo";
-// };
-
-// // Helper para calcular la media de estado y los reportes de las últimas 24 horas
-// const calcularMediaYReportes = (historyItems, monitorName, now, windowStart) => {
-//     const reportes = [];
-//     let totalWarnMs = 0;
-//     let totalDangerMs = 0;
-//     const totalWindowMs = 24 * 60 * 60 * 1000; // 86,400,000 ms
-
-//     for (const item of historyItems) {
-//         const startedAt = new Date(item.started_at);
-//         const endedAt = item.ended_at ? new Date(item.ended_at) : now;
-
-//         // Verificar si el incidente intersecta con la ventana de las últimas 24 horas
-//         if (startedAt < now && endedAt > windowStart) {
-//             const normalizedStatus = normalizarEstadoSG(item.status);
-
-//             // Solo incluimos en reportes si es una falla (advertencia o crítico)
-//             if (normalizedStatus === "advertencia" || normalizedStatus === "critico") {
-//                 let afectado = monitorName;
-//                 if (item.components && Array.isArray(item.components) && item.components.length > 0) {
-//                     afectado = item.components[0].name || item.components[0];
-//                 } else if (item.component_name) {
-//                     afectado = item.component_name;
-//                 }
-
-//                 reportes.push({
-//                     status: normalizedStatus,
-//                     fechaUTC_inicio: item.started_at,
-//                     fechaUTC_fin: item.ended_at || now.toISOString(),
-//                     mensaje: item.message || item.details || "Incidente del servicio",
-//                     afectado: afectado
-//                 });
-//             }
-
-//             // Calcular duración efectiva dentro de la ventana de 24h
-//             const clipStart = Math.max(startedAt.getTime(), windowStart.getTime());
-//             const clipEnd = Math.min(endedAt.getTime(), now.getTime());
-//             const durationMs = clipEnd - clipStart;
-
-//             if (durationMs > 0) {
-//                 if (normalizedStatus === "advertencia") {
-//                     totalWarnMs += durationMs;
-//                 } else if (normalizedStatus === "critico") {
-//                     totalDangerMs += durationMs;
-//                 }
-//             }
-//         }
-//     }
-
-//     // Evitar que la suma supere las 24 horas por solapamiento
-//     let totalOutageMs = totalWarnMs + totalDangerMs;
-//     if (totalOutageMs > totalWindowMs) {
-//         const factor = totalWindowMs / totalOutageMs;
-//         totalWarnMs *= factor;
-//         totalDangerMs *= factor;
-//         totalOutageMs = totalWindowMs;
-//     }
-//     const totalSuccessMs = totalWindowMs - totalOutageMs;
-
-//     const success = parseFloat(((totalSuccessMs / totalWindowMs) * 100).toFixed(2));
-//     const warn = parseFloat(((totalWarnMs / totalWindowMs) * 100).toFixed(2));
-//     const danger = parseFloat(((totalDangerMs / totalWindowMs) * 100).toFixed(2));
-
-//     return {
-//         reportes,
-//         media_estado: { success, warn, danger }
-//     };
-// };
-
-// export const getStatusServicios = async (req, res, next) => {
-//     try {
-//         // Obtener tablero principal (Holanet) registrado en StatusGator
-//         const boards = await getBoards();
-//         const boardHolanet = boards.data.find(board =>
-//             board.name === "Holanet CA" || board.name === "Holanet C.A."
-//         );
-
-//         if (!boardHolanet) {
-//             return res.status(404).json({ success: false, error: "No se encontró el board Holanet en StatusGator" });
-//         }
-
-//         // Obtener servicios registrados en el tablero de Holanet
-//         const servicios = await getBoardServicios(boardHolanet.id);
-//         const serviciosActivos = servicios.data;
-
-//         if (!serviciosActivos) {
-//             return res.status(404).json({ success: false, error: `No se encontraron servicios en el board ${boardHolanet.name}` });
-//         }
-
-//         const now = new Date();
-//         const windowStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-//         // Pedimos historial de los últimos 2 días para prever reportes de larga duración
-//         const start = new Date();
-//         start.setDate(start.getDate() - 2);
-//         const startDate = start.toISOString().split('T')[0];
-//         const endDate = now.toISOString().split('T')[0];
-
-//         // Mapear cada servicio activo a la estructura unificada
-//         const formattedServices = await Promise.all(serviciosActivos.map(async (servicio) => {
-//             try {
-//                 const [historialRes, componentsRes] = await Promise.all([
-//                     getHistoryServicios(boardHolanet.id, servicio.id, startDate, endDate),
-//                     getMonitorComponents(boardHolanet.id, servicio.id).catch(err => {
-//                         console.error(`[StatusGator] Error obteniendo componentes para ${servicio.id}:`, err.message);
-//                         return { data: [] };
-//                     })
-//                 ]);
-
-//                 const historyItems = historialRes.data || [];
-//                 const componentsItems = componentsRes.data || [];
-
-//                 const sub_servicios = componentsItems.map(comp => ({
-//                     name: comp.name || comp.display_name || "Componente",
-//                     status: normalizarEstadoSG(comp.status)
-//                 }));
-
-//                 const { reportes, media_estado } = calcularMediaYReportes(
-//                     historyItems,
-//                     servicio.display_name || servicio.name,
-//                     now,
-//                     windowStart
-//                 );
-
-//                 return {
-//                     fuente: "statusgator_api",
-//                     nombre_servicio: servicio.display_name || servicio.name,
-//                     estado_actual: normalizarEstadoSG(servicio.status),
-//                     sub_servicios,
-//                     reportes,
-//                     media_estado
-//                 };
-//             } catch (error) {
-//                 console.error(`[StatusGator] Error procesando servicio ${servicio.id}:`, error.message);
-//                 return {
-//                     fuente: "statusgator_api",
-//                     nombre_servicio: servicio.display_name || servicio.name || "Servicio Desconocido",
-//                     estado_actual: normalizarEstadoSG(servicio.status),
-//                     sub_servicios: [],
-//                     reportes: [],
-//                     media_estado: { success: 100, warn: 0, danger: 0 }
-//                 };
-//             }
-//         }));
-
-//         // Filtrado por parámetro de consulta si se solicita
-//         let result = formattedServices;
-//         if (req.query.service_name) {
-//             const filterName = req.query.service_name.toLowerCase();
-//             result = formattedServices.filter(s =>
-//                 s.nombre_servicio.toLowerCase().includes(filterName)
-//             );
-//         }
-
-//         return res.status(200).json({
-//             success: true,
-//             data: result
-//         });
-
-//     } catch (error) {
-//         console.error("Error obteniendo datos de StatusGator:", error);
-//         next(error);
-//     }
-// };
