@@ -56,8 +56,13 @@ import routeSmartOLT from '../routes/smartolt.routes.js'
 app.use("/api/smartolt", routeSmartOLT);
 
 // STATUSGATOR
-import routeStatusGator from '../routes/statusgator.routes.js'
+import routeStatusGator from '../routes/statusservices.routes.js'
 app.use("/api/statusgator", routeStatusGator);
+
+// ATLASSIAN
+import routeAtlassian from '../routes/atlassian.routes.js'
+app.use("/api/atlassian", routeAtlassian);
+
 
 // Middleware global para manejo de errores
 import { errorHandler } from '../middleware/errorHandler.js';

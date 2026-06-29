@@ -1,5 +1,5 @@
 import express from 'express';
-import { getStatusServicios } from '../controllers/statusgator.controller.js';
+import { getStatusServicios } from '../controllers/statusservices.controller.js';
 
 const router = express.Router();
 
