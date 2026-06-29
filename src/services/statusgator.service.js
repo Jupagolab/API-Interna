@@ -2,7 +2,7 @@ import axios from "axios";
 
 const { API_KEY_STATUSGATOR, API_KEY_STATUSGATOR2 } = process.env;
 const headers = {
-    "Authorization": `Bearer ${API_KEY_STATUSGATOR2}`
+    "Authorization": `Bearer ${API_KEY_STATUSGATOR}`
 }
 
 export const getBoards = async () => {
