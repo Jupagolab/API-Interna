@@ -1,10 +1,11 @@
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 const CHANNEL_ID = process.env.WHATSAPP_CHANNEL_ID;
+const CUMPLE_ID = process.env.WHATSAPP_GRUPO_PRUEBA_ID;
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -56,13 +57,40 @@ export const sendChannelMessage = async (text) => {
   try {
     // Validar formato del ID del canal (debe terminar en @newsletter)
     const chatId = CHANNEL_ID.includes('@') ? CHANNEL_ID : `${CHANNEL_ID}@newsletter`;
-    
     // Usamos el método nativo en lugar de inyección de código
     await client.sendMessage(chatId, text);
-    
     return { success: true };
   } catch (error) {
     console.error('❌ Error enviando mensaje al canal de WhatsApp:', error.message);
+    return { error: error.message };
+  }
+};
+
+export const sendCumpleMessage = async (text) => {
+  try {
+    // console.log("Recibo mensaje de cumpleños", text);
+    const chatId = CUMPLE_ID.includes('@') ? CUMPLE_ID : `${CUMPLE_ID}@c.us`;
+    await client.sendMessage(chatId, text);
+
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error enviando mensaje de cumpleaños al canal de WhatsApp:', error.message);
+    return { error: error.message };
+  }
+};
+
+export const sendCumpleMessageImage = async (img_url, text) => {
+  try {
+    // console.log("Recibo mensaje de cumpleños con foto", img_url, text);
+
+    const media = await MessageMedia.fromUrl(img_url, { unsafeMime: true });
+
+    const chatId = CUMPLE_ID.includes('@') ? CUMPLE_ID : `${CUMPLE_ID}@c.us`;
+
+    await client.sendMessage(chatId, media, { caption: text });
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error enviando mensaje(foto) de cumpleaños al WhatsApp:', error.message);
     return { error: error.message };
   }
 };
