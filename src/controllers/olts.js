@@ -9,16 +9,14 @@ export const backupOLT = async (req, res) => {
 
   console.log(`[${new Date().toISOString()}] Iniciando backup OLT ${oltIp}...`);
 
-  // Enviamos la secuencia limpia con retornos de carro
+  // Quitamos la "y" porque la MA5800 ejecuta directamente el backup
   const inputCommands = [
     'enable',
     'config',
     `backup configuration ftp ${ftpIp} ${fileName}`,
-    'y',
     'quit'
   ].join('\n') + '\n';
 
-  // Ejecutamos sshpass pasando los comandos de forma limpia
   const sshCmd = `sshpass -p '${oltPass}' ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${oltUser}@${oltIp}`;
 
   try {
@@ -31,7 +29,7 @@ export const backupOLT = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Comando de backup enviado a la OLT',
+      message: 'Comando de backup procesado con éxito por la OLT',
       output: stdout
     });
   } catch (error) {
