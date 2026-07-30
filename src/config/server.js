@@ -63,6 +63,9 @@ app.use("/api/statusgator", routeStatusGator);
 import routeAtlassian from '../routes/atlassian.routes.js'
 app.use("/api/atlassian", routeAtlassian);
 
+// OLT
+import routeOLT from '../routes/olts.js'
+app.use("/api/olts", routeOLT);
 
 // Middleware global para manejo de errores
 import { errorHandler } from '../middleware/errorHandler.js';
