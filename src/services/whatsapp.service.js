@@ -10,7 +10,7 @@ const CUMPLE_ID = process.env.WHATSAPP_GRUPO_PRUEBA_ID;
 const client = new Client({
   authStrategy: new LocalAuth(),
   webVersionCache: {
-    type: 'remoteOrLocal',
+    type: 'remote',
     remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
   },
   puppeteer: {
@@ -43,17 +43,11 @@ client.on('disconnected', async (reason) => {
   }
 });
 
-export const initWhatsApp = async (retries = 3) => {
+export const initWhatsApp = async () => {
   try {
     await client.initialize();
   } catch (error) {
     console.error('⚠️ Error al inicializar WhatsApp:', error.message);
-    if (retries > 0) {
-      console.log(`Reintentando inicialización en 5 segundos... (Intentos restantes: ${retries})`);
-      setTimeout(() => initWhatsApp(retries - 1), 5000);
-    } else {
-      console.error('❌ Fallo crítico: No se pudo inicializar WhatsApp después de varios intentos.');
-    }
   }
 };
 
