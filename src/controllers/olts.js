@@ -1,11 +1,15 @@
 import { execSync } from 'child_process';
 
 export const backupOLT = async (req, res) => {
-  const { oltIp, oltUser, oltPass, ftpIp, fileName } = req.body;
+  const { oltIp, oltUser, oltPass, ftpIp, oltName } = req.body;
+
+  // Nombre de archivo sencillo sin espacios ni caracteres especiales raros
+  const dateStr = new Date().toISOString().split('T')[0];
+  const fileName = `backup_${oltName}_${dateStr}.config`;
 
   console.log(`[${new Date().toISOString()}] Iniciando backup OLT ${oltIp}...`);
 
-  // Cadena de comandos limpia con saltos de línea puros
+  // Enviamos la secuencia limpia con retornos de carro
   const inputCommands = [
     'enable',
     'config',
@@ -14,11 +18,10 @@ export const backupOLT = async (req, res) => {
     'quit'
   ].join('\n') + '\n';
 
-  // Comando SSH limpio sin redirecciones ni 'echo'
+  // Ejecutamos sshpass pasando los comandos de forma limpia
   const sshCmd = `sshpass -p '${oltPass}' ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${oltUser}@${oltIp}`;
 
   try {
-    // Inyectamos los comandos directamente por el STDIN del proceso
     const stdout = execSync(sshCmd, {
       input: inputCommands,
       timeout: 60000
@@ -28,7 +31,7 @@ export const backupOLT = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Comando enviado exitosamente a la OLT',
+      message: 'Comando de backup enviado a la OLT',
       output: stdout
     });
   } catch (error) {
