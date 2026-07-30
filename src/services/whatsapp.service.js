@@ -9,6 +9,10 @@ const CUMPLE_ID = process.env.WHATSAPP_GRUPO_PRUEBA_ID;
 
 const client = new Client({
   authStrategy: new LocalAuth(),
+  webVersionCache: {
+    type: 'remoteOrLocal',
+    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+  },
   puppeteer: {
     headless: true,
     executablePath: '/usr/bin/google-chrome-stable', // ← Chrome del sistema
